@@ -21,15 +21,50 @@ Bot do Slack que:
 - Interage com o Databricks Genie usando as credenciais autenticadas do usuário
 - Mantém cache de clientes por usuário com invalidação automática
 
-## Fluxo de Autenticação
+---
 
-1. Usuário envia mensagem no Slack para o bot
-2. Bot verifica se há token válido em cache para aquele usuário
-3. Se não houver token ou estiver expirado, retorna URL de autenticação
-4. Usuário clica na URL e autentica no Databricks via OAuth
-5. Token é armazenado no oauth-test-app e associado ao email do usuário
-6. Bot usa o token para criar WorkspaceClient e consultar Genie
-7. Token expira após 1 hora, forçando nova autenticação
+## Diagrama da Arquitetura
+
+![Arquitetura da Solução](img/architecture.png)
+
+### Fluxo Completo de Funcionamento
+
+A integração funciona através de 8 passos principais:
+
+#### 1️⃣ Conexão Socket com Slack
+O **genie-sdk** (dentro do `genie-slack-app`) inicializa uma conexão socket persistente com a **Slack API** usando o modo Socket. Isso permite que o bot receba mensagens em tempo real sem precisar de um webhook público.
+
+#### 2️⃣ Usuário Interage com o Bot
+O usuário envia uma mensagem direta para o bot no Slack (ex: "Qual produto vendeu mais?").
+
+#### 3️⃣ Mensagem Transmitida via Socket
+A mensagem do usuário é encaminhada pela Slack API através da conexão socket para o **Databricks Apps** (`genie-slack-app`).
+
+#### 4️⃣ Validação de Autenticação
+O `genie-slack-app` valida se o usuário que enviou a mensagem possui um token OAuth válido:
+- **Se NÃO estiver autenticado**: Vai para o passo 5
+- **Se ESTIVER autenticado**: Pula direto para o passo 7
+
+#### 5️⃣ Solicitação de Autenticação
+O usuário recebe uma mensagem no Slack com um **link de autenticação**. Ao clicar, o navegador abre a página de SSO-Auth do Databricks.
+
+#### 6️⃣ Callback e Obtenção de Token
+Após o usuário autenticar via browser (SSO), o Databricks redireciona para o **oauth-test-app** (callback), que recebe e armazena as **credenciais de curta duração** (token válido por 1 hora).
+
+#### 7️⃣ Consulta ao Genie
+A pergunta do usuário é enviada via **Databricks SDK** para o **Genie**, usando as **credenciais do próprio usuário**. Isso garante que:
+- O Genie respeita as permissões do usuário
+- Row Level Security (RLS) é aplicada
+- A auditoria registra o usuário real, não um service account
+
+#### 8️⃣ Resposta ao Usuário
+O **Genie** processa a pergunta, gera a resposta (com dados filtrados pelas permissões do usuário) e o `genie-slack-app` envia a resposta de volta para o usuário no **Slack**.
+
+### Fluxo de Re-autenticação
+
+- **Tokens expiram após 1 hora** (3600 segundos)
+- Após expiração, o usuário volta ao passo 4 e precisa autenticar novamente (passos 5-6)
+- Durante a validade do token, múltiplas perguntas podem ser feitas sem re-autenticação
 
 ## Comunicação Entre Apps
 
