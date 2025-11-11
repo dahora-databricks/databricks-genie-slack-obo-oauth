@@ -304,24 +304,70 @@ A configuração é dividida em 4 etapas principais:
 
 2. Feche a aba e volte ao Slack
 
-### 4. Fazer Perguntas ao Genie
+### 4. Interagir com o Genie via Slack
 
-1. Agora você pode fazer perguntas normalmente:
-   ```
-   Qual produto vendeu mais unidades ao total?
-   ```
+Após autenticado, você pode fazer perguntas naturais ao Genie diretamente no Slack:
 
-2. O bot responderá com os dados do Genie:
-   ```
-   ## Descrição da Consulta
-   Você está pedindo para descobrir...
+![Interação com o bot no Slack](img/slack-bot.png)
 
-   ## Resultados da Consulta
-   | product |
-   |---------|
-   | Chair   |
-   | Desk    |
-   ```
+**Observe nos horários das mensagens:**
+- **10:03 AM** - Primeira mensagem, bot solicita autenticação
+- **10:04 AM** - Após autenticar, primeira pergunta ao Genie
+- **10:05 AM** - Segunda pergunta (sem necessidade de autenticar novamente)
+- **10:06 AM** - Terceira pergunta (ainda usando o mesmo token)
+
+O token OAuth é válido por **1 hora**, então você pode fazer múltiplas perguntas sem precisar autenticar novamente. Após 1 hora, será necessário uma nova autenticação.
+
+---
+
+## Rastreabilidade, Auditoria e Segurança
+
+Uma das principais vantagens desta arquitetura é que **cada interação com o Genie usa as credenciais do usuário autenticado**, não as credenciais do service principal do app.
+
+### Monitoramento de Usuários
+
+Ao acessar o **Genie Monitoring** no Databricks, você pode ver que todas as consultas foram feitas pelo usuário real:
+
+![Monitoramento do Genie](img/genie-monitoring.png)
+
+Na coluna **User**, observe que todas as interações mostram **"Thiago da Hora"** (o usuário que autenticou via Slack), **não** o service principal do app (ex: `app-6714xu`).
+
+### Benefícios de Segurança
+
+Esta abordagem garante:
+
+#### 1. **Rastreabilidade**
+- Cada consulta é registrada com o usuário real que a fez
+- É possível auditar quem perguntou o quê e quando
+- Logs mostram o nome do usuário, não um service account genérico
+
+#### 2. **Auditoria**
+- Histórico completo de perguntas por usuário
+- Timestamps precisos de cada interação
+- Compliance facilitado para regulamentações (LGPD, GDPR, etc.)
+
+#### 3. **Row Level Security (RLS)**
+- Permissões do Databricks são respeitadas **por usuário**
+- Se um usuário não tem acesso a determinados dados, ele não verá esses dados via Slack
+- RLS configurada em tabelas é aplicada automaticamente
+- Cada usuário vê apenas os dados que tem permissão para acessar
+
+#### 4. **Controle de Acesso**
+- Usuários sem acesso ao Genie Space não conseguem fazer perguntas
+- Permissões de Unity Catalog são respeitadas
+- Possível revogar acesso individual sem afetar outros usuários
+
+### Exemplo Prático de RLS
+
+Imagine que você tenha uma tabela de vendas com RLS configurada por região:
+- **Usuário A** (região Sul) só vê vendas do Sul
+- **Usuário B** (região Norte) só vê vendas do Norte
+
+Quando ambos perguntam "Quais foram as vendas totais?":
+- Via Slack, **Usuário A** verá apenas dados do Sul
+- Via Slack, **Usuário B** verá apenas dados do Norte
+
+Isso acontece porque cada um está usando suas **próprias credenciais OAuth**, não uma credencial compartilhada do app.
 
 ---
 
