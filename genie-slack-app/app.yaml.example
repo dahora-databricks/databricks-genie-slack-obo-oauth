@@ -1,0 +1,16 @@
+command: [
+  "python",
+  "app.py"
+]
+env:
+  - name: "SLACK_BOT_TOKEN"
+    value: "YOUR_SLACK_BOT_TOKEN"  # Get from Slack App settings
+  - name: "SLACK_APP_TOKEN"
+    value: "YOUR_SLACK_APP_TOKEN"  # Get from Slack App settings
+  - name: "DATABRICKS_SPACE_ID"
+    value: "YOUR_GENIE_SPACE_ID"  # Get from Databricks Genie Space
+  - name: "DATABRICKS_HOST"
+    value: "https://your-workspace.cloud.databricks.com"
+  - name: "OAUTH_SERVICE_URL"
+    value: "https://your-oauth-app.databricksapps.com"  # URL of your deployed oauth-test-app
+
