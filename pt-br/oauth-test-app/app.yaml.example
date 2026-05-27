@@ -1,0 +1,14 @@
+command: [
+  "python",
+  "app.py"
+]
+env:
+  - name: "DATABRICKS_HOST"
+    value: "https://your-workspace.cloud.databricks.com"
+  - name: "CLIENT_ID"
+    value: "YOUR_OAUTH_CLIENT_ID"  # Create OAuth app connection in Databricks workspace
+  - name: "CLIENT_SECRET"
+    value: "YOUR_OAUTH_CLIENT_SECRET"  # From OAuth app connection
+  - name: "OAUTH_REDIRECT_URI"
+    value: "https://your-oauth-app.databricksapps.com/oauth/callback"  # Update with your app URL
+

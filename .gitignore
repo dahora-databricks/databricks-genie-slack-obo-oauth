@@ -1,6 +1,6 @@
-# Ignore configuration files with secrets
-genie-slack-app/app.yaml
-oauth-test-app/app.yaml
+# Ignore configuration files with secrets (any depth — pt-br/, en-us/, etc.)
+**/genie-slack-app/app.yaml
+**/oauth-test-app/app.yaml
 
 # Python
 __pycache__/
