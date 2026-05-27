@@ -1,8 +1,8 @@
-# Genie Slack App: On-Behalf-Of (OBO) OAuth
+# Genie Slack App: OAuth on-behalf-of user (OBO)
 
-> Integration between **Slack** and **Databricks AI/BI Genie** where every query runs **as the Slack user (OBO)** via OAuth, never under a shared service principal. Row-Level Security, Unity Catalog grants and audit logs follow the real user, end-to-end.
+> Integration between **Slack** and **Databricks AI/BI Genie** where every query runs **as the Slack user (OBO, "on-behalf-of user")** via OAuth, never under a shared service principal. Row-Level Security, Unity Catalog grants and audit logs all reflect the real user, end to end.
 
-Two Databricks Apps talking to each other: an **OAuth broker** holding short-lived per-user tokens in memory, and a **Slack bot** that uses those tokens to call Genie. No persistence: tokens live in memory and expire in 1 hour.
+Two small Databricks Apps that talk to each other: an **OAuth broker** that holds short-lived per-user tokens in memory, and a **Slack bot** that uses those tokens to call Genie. Nothing is persisted to disk; tokens live in memory and expire in 1 hour.
 
 ---
 

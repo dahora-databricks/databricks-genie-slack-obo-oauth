@@ -13,9 +13,9 @@ Two Databricks Apps speaking to each other: an **OAuth broker** that holds short
 | 🇬🇧 | **[English · en-us/](en-us/README.md)**: full setup guide |
 | 🇧🇷 | **[Português · pt-br/](pt-br/README.md)**: versão canônica |
 
-Both folders mirror the same source tree (two app codebases plus images). Code identifiers stay the same in both. Only README files and inline documentation are translated.
+The two folders share the same source tree (two app codebases and the images). The code itself isn't translated, only the README and inline docs are.
 
-Ambas as pastas espelham a mesma árvore. Identificadores de código permanecem iguais. Só READMEs e documentação são traduzidos.
+Os dois diretórios compartilham a mesma árvore (dois apps e as imagens). O código não é traduzido, só o README e a documentação inline.
 
 ---
 
@@ -26,6 +26,6 @@ Ambas as pastas espelham a mesma árvore. Identificadores de código permanecem 
   - `genie-slack-app`: Slack Socket Mode bot, fetches the user's token from the broker, calls Genie with a per-user `WorkspaceClient`
 - **Auth model:** the Slack user authenticates once via Databricks SSO; the bot uses **that user's token** for every Genie call. Apps talk to each other via OAuth Client Credentials (M2M).
 - **Setup:** 4 steps. (1) deploy oauth broker, (2) create Account-level OAuth App Connection, (3) create Slack app + scopes, (4) deploy Slack bot and grant cross-app permissions.
-- **Why this matters:** RLS, UC grants and Genie audit logs all reflect the real Slack user, not a shared SP.
+- **Why this matters:** RLS, UC grants and the Genie audit logs all line up with the actual Slack user, instead of a single bot identity speaking for everyone.
 
 To get started: see **[en-us/README.md](en-us/README.md)** or **[pt-br/README.md](pt-br/README.md)**.
