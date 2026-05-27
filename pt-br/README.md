@@ -372,21 +372,6 @@ Ambos perguntam no Slack "qual foi a venda total?". A resposta é diferente pra 
 | `/oauth/token?user_email=<email>` | GET | Retorna o access token vigente (ou URL de login, se não autenticado) |
 | `/oauth/status?user_email=<email>` | GET | Status da autenticação (autenticado/expirado/nunca logou) |
 
-### Mapeamento de e-mails (Slack ↔ Databricks)
-
-Se o e-mail do usuário no Slack é diferente do e-mail no Databricks (ex: pessoal vs. corporativo), edite o mapping no `genie-slack-app/app.py`:
-
-```python
-def map_slack_email_to_databricks_email(slack_email: str) -> str:
-    mapping = {
-        "thvieira@outlook.com": "thiago.vieira@databricks.com",
-        # adicione mais conforme necessário
-    }
-    return mapping.get(slack_email, slack_email)
-```
-
-Depois faça novo deploy do `genie-slack-app`.
-
 ---
 
 ## Troubleshooting

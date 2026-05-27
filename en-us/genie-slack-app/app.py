@@ -28,19 +28,18 @@ USER_CONVERSATIONS: Dict[str, str] = {}  # user_email -> conversation_id
 
 def map_slack_email_to_databricks_email(slack_email: str) -> str:
     """
-    Mapeia email do Slack para email do Databricks para casos especiais.
-    
-    Útil quando o usuário usa um email pessoal no Slack mas precisa autenticar
-    com o email corporativo do Databricks.
-    
-    Para adicionar novos mapeamentos, adicione mais condições if aqui.
+    Map a Slack email to a Databricks email for special cases.
+
+    Useful when a user signs into Slack with a personal email but must
+    authenticate against Databricks with their corporate email.
+
+    To add specific mappings, edit the `mapping` dict below. Example:
+        mapping = {
+            "personal@gmail.com": "corporate@example.com",
+        }
     """
-    # Mapeamento para demo
-    if slack_email == "thvieira@outlook.com":
-        return "thiago.vieira@databricks.com"
-    
-    # Para outros usuários, usar o mesmo email
-    return slack_email
+    mapping: dict[str, str] = {}
+    return mapping.get(slack_email, slack_email)
 
 
 def get_m2m_token() -> Optional[str]:

@@ -372,21 +372,6 @@ Both ask in Slack "what were the total sales?". The answers differ because Genie
 | `/oauth/token?user_email=<email>` | GET | Returns the current access token (or a login URL if not authenticated) |
 | `/oauth/status?user_email=<email>` | GET | Auth status (authenticated/expired/never logged in) |
 
-### Slack ↔ Databricks email mapping
-
-If a user's Slack email differs from their Databricks email (e.g. personal vs. corporate), edit the mapping in `genie-slack-app/app.py`:
-
-```python
-def map_slack_email_to_databricks_email(slack_email: str) -> str:
-    mapping = {
-        "thvieira@outlook.com": "thiago.vieira@databricks.com",
-        # add more as needed
-    }
-    return mapping.get(slack_email, slack_email)
-```
-
-Re-deploy `genie-slack-app` after editing.
-
 ---
 
 ## Troubleshooting
