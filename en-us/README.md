@@ -1,8 +1,8 @@
-# Genie Slack App — On-Behalf-Of (OBO) OAuth
+# Genie Slack App: On-Behalf-Of (OBO) OAuth
 
-> Integration between **Slack** and **Databricks AI/BI Genie** where every query runs **as the Slack user (OBO)** via OAuth — not under a shared service principal. Row-Level Security, Unity Catalog grants and audit logs follow the real user, end-to-end.
+> Integration between **Slack** and **Databricks AI/BI Genie** where every query runs **as the Slack user (OBO)** via OAuth, never under a shared service principal. Row-Level Security, Unity Catalog grants and audit logs follow the real user, end-to-end.
 
-Two Databricks Apps talking to each other: an **OAuth broker** holding short-lived per-user tokens in memory, and a **Slack bot** that uses those tokens to call Genie. No persistence — tokens live in memory and expire in 1 hour.
+Two Databricks Apps talking to each other: an **OAuth broker** holding short-lived per-user tokens in memory, and a **Slack bot** that uses those tokens to call Genie. No persistence: tokens live in memory and expire in 1 hour.
 
 ---
 
@@ -13,10 +13,10 @@ Two Databricks Apps talking to each other: an **OAuth broker** holding short-liv
 - [Architecture](#architecture)
 - [Flow](#flow-8-steps)
 - [Setup in 4 stages](#setup-in-4-stages)
-  - [Stage 1 — Databricks Apps · OAuth Broker](#stage-1--databricks-apps--oauth-broker)
-  - [Stage 2 — Databricks Account · App Connection](#stage-2--databricks-account--app-connection)
-  - [Stage 3 — Slack App](#stage-3--slack-app)
-  - [Stage 4 — Databricks Apps · Genie + Slack](#stage-4--databricks-apps--genie--slack)
+  - [Stage 1 · Databricks Apps · OAuth Broker](#stage-1--databricks-apps--oauth-broker)
+  - [Stage 2 · Databricks Account · App Connection](#stage-2--databricks-account--app-connection)
+  - [Stage 3 · Slack App](#stage-3--slack-app)
+  - [Stage 4 · Databricks Apps · Genie + Slack](#stage-4--databricks-apps--genie--slack)
 - [Testing the integration](#testing-the-integration)
 - [Traceability, audit and RLS](#traceability-audit-and-rls)
 - [Technical details](#technical-details)
@@ -49,13 +49,13 @@ Two Databricks Apps talking to each other: an **OAuth broker** holding short-liv
 
 Two apps:
 
-### `oauth-test-app` — OAuth Broker
+### `oauth-test-app` (OAuth Broker)
 - Implements the OAuth 2.0 Authorization Code flow against the Databricks Account
 - Stores per-user tokens **in memory** (valid for 1h, swept every 10 min)
 - Exposes REST endpoints: `/oauth/login`, `/oauth/callback`, `/oauth/token`, `/oauth/status`
 - Receives the SSO redirect and exchanges the code for an access token
 
-### `genie-slack-app` — Slack bot
+### `genie-slack-app` (Slack bot)
 - Connects to Slack via **Socket Mode** (no public webhook required)
 - For each incoming message, asks the broker for that user's token
 - Builds a per-user `WorkspaceClient` (never shared across threads)
@@ -72,7 +72,7 @@ The apps talk over HTTP authenticated via **OAuth Client Credentials (M2M)**:
 ## Flow (8 steps)
 
 #### 1️⃣ Socket connection to Slack
-`genie-slack-app` opens a persistent Socket Mode connection to the Slack API — no public webhook.
+`genie-slack-app` opens a persistent Socket Mode connection to the Slack API (no public webhook).
 
 #### 2️⃣ User interacts with the bot
 The user sends a DM or mentions the bot (e.g. "Which product sold the most?").
@@ -107,7 +107,7 @@ Tokens expire after **1 hour**. After expiry the user falls back into step 4 and
 
 ## Setup in 4 stages
 
-### Stage 1 — Databricks Apps · OAuth Broker
+### Stage 1 · Databricks Apps · OAuth Broker
 
 #### 1.1 Create the app
 1. In Databricks: **Compute** → **Apps** → **Create new app** → **Create a custom app**
@@ -130,7 +130,7 @@ env:
     value: "https://your-workspace.cloud.databricks.com"
 ```
 
-Leave `CLIENT_ID`, `CLIENT_SECRET` and `OAUTH_REDIRECT_URI` empty — they get filled in after Stage 2.
+Leave `CLIENT_ID`, `CLIENT_SECRET` and `OAUTH_REDIRECT_URI` empty; they get filled in after Stage 2.
 
 > **Token cleanup/expiry:** `app.py` already cleans up tokens every 10 min and caps validity at 1h (`expires_in = min(expires_in, 3600)`).
 
@@ -151,11 +151,11 @@ https://oauth-test-app-XXXXXXXXX.aws.databricksapps.com
 https://oauth-test-app-XXXXXXXXX.aws.databricksapps.com/oauth/callback
 ```
 
-Save this URL — you'll use it in Stage 2.
+Save this URL (you'll use it in Stage 2).
 
 ---
 
-### Stage 2 — Databricks Account · App Connection
+### Stage 2 · Databricks Account · App Connection
 
 #### 2.1 Create the App Connection
 1. In the **Account Console** (accounts.cloud.databricks.com): **Settings** → **App connections** → **Add connection**
@@ -174,8 +174,8 @@ Click **Save**.
 
 #### 2.3 Copy Client ID and Client Secret
 After saving you'll see:
-- **Client ID** — a string like `0209ee5b-dc86-485b-93b...`
-- **Client Secret** — generated once, **copy it now**
+- **Client ID**: a string like `0209ee5b-dc86-485b-93b...`
+- **Client Secret**: generated once, **copy it now**
 
 #### 2.4 Update `app.yaml` and re-deploy
 Go back to `oauth-test-app/app.yaml` and fill in:
@@ -196,7 +196,7 @@ env:
 
 ---
 
-### Stage 3 — Slack App
+### Stage 3 · Slack App
 
 #### 3.1 Create the Slack App
 1. https://api.slack.com/apps → **Create New App** → **From scratch**
@@ -223,8 +223,8 @@ Under **OAuth & Permissions** → **Bot Token Scopes**, add:
 
 #### 3.4 Event Subscriptions
 **Event Subscriptions** → enable **Enable Events** → under **Subscribe to bot events**:
-- `app_mention` — when someone mentions the bot
-- `message.im` — DMs to the bot
+- `app_mention`: when someone mentions the bot
+- `message.im`: DMs to the bot
 
 #### 3.5 Install in the workspace
 **Install App** → **Install to Workspace** → authorize.
@@ -233,7 +233,7 @@ Copy the **Bot User OAuth Token** (`xoxb-...`) → this is `SLACK_BOT_TOKEN`.
 
 ---
 
-### Stage 4 — Databricks Apps · Genie + Slack
+### Stage 4 · Databricks Apps · Genie + Slack
 
 #### 4.1 Get the Genie Space ID
 In Databricks, open the Genie Space you want to expose. From the URL:
@@ -337,7 +337,7 @@ In Databricks → **Genie** → **Monitoring**, the **User** column shows the ac
 | Dimension | Behavior |
 |---|---|
 | **Traceability** | Each query is logged with the user who asked it. Audit shows the name, not a generic SP. |
-| **Row Level Security** | RLS configured on tables is enforced automatically — each user sees only what they're allowed to. |
+| **Row Level Security** | RLS configured on tables is enforced automatically; each user sees only what they're allowed to. |
 | **Unity Catalog grants** | If the user lacks `SELECT` on a table Genie uses, they won't see that data through Slack. |
 | **Per-user control** | Revoking a user's access to the Genie Space removes their Slack access without affecting anyone else. |
 | **Compliance** | Per-user audit trail makes LGPD/GDPR/SOX easier. |
@@ -355,12 +355,12 @@ Both ask in Slack "what were the total sales?". The answers differ because Genie
 ## Technical details
 
 ### Token lifecycle
-- OAuth tokens expire after **1h** (3600s — enforced by the broker via `min(expires_in, 3600)`)
+- OAuth tokens expire after **1h** (3600s, enforced by the broker via `min(expires_in, 3600)`)
 - The `WorkspaceClient` cache invalidates after **55 min**
 - Expired tokens are removed from the in-memory dict every **10 min**
 
 ### App-to-app communication
-- **M2M (Client Credentials):** `DATABRICKS_CLIENT_ID` and `DATABRICKS_CLIENT_SECRET` are auto-injected by Databricks Apps in **every** app — no manual config needed
+- **M2M (Client Credentials):** `DATABRICKS_CLIENT_ID` and `DATABRICKS_CLIENT_SECRET` are auto-injected by Databricks Apps in **every** app; no manual config needed
 - `genie-slack-app` uses these credentials to obtain an M2M token and authenticate its calls to `oauth-test-app`
 
 ### `oauth-test-app` REST API
@@ -368,7 +368,7 @@ Both ask in Slack "what were the total sales?". The answers differ because Genie
 | Endpoint | Method | Description |
 |---|---|---|
 | `/oauth/login?user_email=<email>` | GET | Returns the OAuth login URL for that user |
-| `/oauth/callback?code=<code>&state=<state>` | GET | Databricks callback after SSO — exchanges code for token |
+| `/oauth/callback?code=<code>&state=<state>` | GET | Databricks callback after SSO, exchanges code for token |
 | `/oauth/token?user_email=<email>` | GET | Returns the current access token (or a login URL if not authenticated) |
 | `/oauth/status?user_email=<email>` | GET | Auth status (authenticated/expired/never logged in) |
 
@@ -385,7 +385,7 @@ Both ask in Slack "what were the total sales?". The answers differ because Genie
 - `oauth-test-app` is not running
 
 **Fixes:**
-1. Confirm `OAUTH_SERVICE_URL` — it must be the broker URL **without** `/oauth/callback`
+1. Confirm `OAUTH_SERVICE_URL`: it must be the broker URL **without** `/oauth/callback`
 2. In `oauth-test-app` → **Permissions**, confirm the `genie-slack-app` SP has **Can Use**
 3. In `oauth-test-app` → **Logs**, look for errors
 </details>
@@ -393,7 +393,7 @@ Both ask in Slack "what were the total sales?". The answers differ because Genie
 <details>
 <summary><strong>"Invalid token" or 403</strong></summary>
 
-Token expired (1h TTL). Send any new message in Slack — the bot detects it and offers a fresh auth link.
+Token expired (1h TTL). Send any new message in Slack; the bot detects it and offers a fresh auth link.
 </details>
 
 <details>
@@ -413,7 +413,7 @@ Token expired (1h TTL). Send any new message in Slack — the bot detects it and
 <details>
 <summary><strong>"Parameter(s) present more than once: [state]"</strong></summary>
 
-App Connection misconfigured. Confirm `OAUTH_REDIRECT_URI` is exactly `https://...databricksapps.com/oauth/callback` — no extra query params.
+App Connection misconfigured. Confirm `OAUTH_REDIRECT_URI` is exactly `https://...databricksapps.com/oauth/callback`. no extra query params.
 </details>
 
 <details>
