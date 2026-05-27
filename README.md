@@ -1,4 +1,4 @@
-# dahora-genie-slack-oauth
+# Genie + Slack with per-user OAuth (OBO)
 
 > **Slack ↔ Databricks AI/BI Genie** integration where every Genie query runs **on behalf of the Slack user (OBO)** via OAuth, never under a shared service principal. Row-Level Security, Unity Catalog grants and audit trails follow the real user, end to end.
 
